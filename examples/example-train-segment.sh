@@ -17,7 +17,7 @@ morfessor-train -S $dir/baselinemodel.$lan.txt $dir/$input 2>log.err.$lan.$exten
 ## Clean lexicon for strange characters
 cat $dir/baselinemodel.$lan.txt | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > $dir/baselinemodel.$lan.clean.txt
 
-## Train Flatcat model using the training set
+## Train LMVR model using the training set
 lmvr-train $dir/baselinemodel.$lan.clean.txt -T $dir/$input -s $dir/lmvr.${extension}.model.tar.gz -m batch -p $P -d none --min-shift-remainder 1 --length-threshold 5 --min-perplexity-length 1 --max-epochs 5 --lexicon-size $dictionarysize -x $dir/flatcat.${extension}.lexicon.txt -o $dir/$input.segmented
 
 ## Segment train, dev, and test sets using the segmentation model
