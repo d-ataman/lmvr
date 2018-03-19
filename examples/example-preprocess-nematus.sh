@@ -16,7 +16,7 @@ src=$2
 trg=$3
 
 # segmentation type of source corpus (just check True or False whichever way you want to segment your corpus)
-# if you want to use LMVR make sure that morfessor is installed
+# if you want to use LMVR make sure that lmvressor is installed
 # Also define the python path. LMVR uses python 2.7.
 # options: bpe, lmvr
 python="/pathtopython2.7"
@@ -48,12 +48,12 @@ test_bpe_src="$data_dir/test.bpe.$src"
 train_code_trg="$data_dir/train.code.$trg"
 train_bpe_trg="$data_dir/train.bpe.$trg"
 
-train_morfmodel_src="$data_dir/train.mmodel-$src.tar.gz"
-train_morf_src="$data_dir/train.morf.$src"
-dev_morf_src="$data_dir/dev.morf.$src"
-test_morf_src="$data_dir/test.morf.$src"
-train_morfmodel_trg="$data_dir/train.mmodel-$trg.tar.gz"
-train_morf_trg="$data_dir/train.morf.$trg"
+train_lmvrmodel_src="$data_dir/train.lmvrmodel-$src.tar.gz"
+train_lmvr_src="$data_dir/train.lmvr.$src"
+dev_lmvr_src="$data_dir/dev.lmvr.$src"
+test_lmvr_src="$data_dir/test.lmvr.$src"
+train_lmvrmodel_trg="$data_dir/train.lmvrmodel-$trg.tar.gz"
+train_lmvr_trg="$data_dir/train.lmvr.$trg"
 
 
 if [ $segment = '1' ] ; then
@@ -126,84 +126,84 @@ if [ $segment = '1' ] ; then
 
 # IF LMVR SELECTED
 
-  dictionarysize=$dictionarysize #vocabulary size (could be higher, check your GPU memory requirements)
+  dictionarysize=$dictionarysize #NMT vocabulary size
   P=10 #perplexity (default)
 
   if [ $src_seg = 'lmvr' ] ; then
       echo "Running LMVR for subword preprocessing"
 
       # Train the segmentation models
-      if [ -s "$train_morfmodel_src" ] ; then
-        echo "$train_morfmodel_src already exist"
+      if [ -s "$train_lmvrmodel_src" ] ; then
+        echo "$train_lmvrmodel_src already exist"
       else
         echo "Training Morfessor Baseline for the source corpus"
-        morfessor-train -S "$data_dir/baselinemodel.$src.txt" $train_src 2>"$data_dir/log.morf.$src"
+        lmvressor-train -S "$data_dir/baselinemodel.$src.txt" $train_src 2>"$data_dir/log.lmvr.$src"
 	sed 's/\///g' "$data_dir/baselinemodel.$src.txt" | sed 's/\\//g' > "$data_dir/baselinemodel.$src.temp.txt"
 	awk -F' ' '$2!=""' "$data_dir/baselinemodel.$src.temp.txt" > "$data_dir/baselinemodel.$src.clean.txt"
 	rm "$data_dir/baselinemodel.$src.temp.txt" "$data_dir/baselinemodel.$src.txt"
-	lmvr-train "$data_dir/baselinemodel.$src.clean.txt" -T $train_src -s $train_morfmodel_src -m batch -p $P -d none --min-shift-remainder 1 --length-threshold 5 --min-perplexity-length 1 --max-epochs 5 --lexicon-size $dictionarysize -x $train_morfmodel_src -o "$train_morf_src.temp"
+	lmvr-train "$data_dir/baselinemodel.$src.clean.txt" -T $train_src -s $train_lmvrmodel_src -m batch -p $P -d none --min-shift-remainder 1 --length-threshold 5 --min-perplexity-length 1 --max-epochs 5 --lexicon-size $dictionarysize -x $train_lmvrmodel_src -o "$train_lmvr_src.temp"
 	
-        echo "Model for segmenting the source corpus is saved in $train_morfmodel_src"
+        echo "Model for segmenting the source corpus is saved in $train_lmvrmodel_src"
       fi
 
       # Apply the learned models on the training data
-      if [ -s "$train_morf_src" ] ; then
-        echo "$train_morf_src already exist"
+      if [ -s "$train_lmvr_src" ] ; then
+        echo "$train_lmvr_src already exist"
       else
         echo "Applying codes for the source corpus"
-        lmvr-segment $train_morfmodel_src -p $P --output-newlines --encoding UTF-8 -o "$train_morf_src.temp"
-	cat "$train_morf_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$train_morf_src"
-	rm "$train_morf_src.temp"
-        echo "Segmented source train set is saved in $train_morf_src"
+        lmvr-segment $train_lmvrmodel_src -p $P --output-newlines --encoding UTF-8 -o "$train_lmvr_src.temp"
+	cat "$train_lmvr_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$train_lmvr_src"
+	rm "$train_lmvr_src.temp"
+        echo "Segmented source train set is saved in $train_lmvr_src"
       fi
 
       # Segment the dev set
-      if [ -s "$dev_morf_src" ] ; then
-        echo "$dev_morf_src already exist"
+      if [ -s "$dev_lmvr_src" ] ; then
+        echo "$dev_lmvr_src already exist"
       else
         echo "Applying codes for the source corpus"
-        lmvr-segment $train_morfmodel_src  $dev_src -p $P --output-newlines --encoding UTF-8 -o "$dev_morf_src.temp"
-	cat "$dev_morf_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$dev_morf_src"
-	rm "$dev_morf_src.temp"
-        echo "Segmented dev set is saved in $dev_morf_src"
+        lmvr-segment $train_lmvrmodel_src  $dev_src -p $P --output-newlines --encoding UTF-8 -o "$dev_lmvr_src.temp"
+	cat "$dev_lmvr_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$dev_lmvr_src"
+	rm "$dev_lmvr_src.temp"
+        echo "Segmented dev set is saved in $dev_lmvr_src"
       fi
 
       # Segment the test set
-      if [ -s "$test_morf_src" ] ; then
-        echo "$test_morf_src already exist"
+      if [ -s "$test_lmvr_src" ] ; then
+        echo "$test_lmvr_src already exist"
       else
         echo "Applying codes for the source corpus"
-        lmvr-segment $train_morfmodel_src  $test_src -p $P --output-newlines --encoding UTF-8 -o "$test_morf_src.temp"
-	cat "$test_morf_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$test_morf_src"
-	rm "$test_morf_src.temp"
-        echo "Segmented test set is saved in $test_morf_src"
+        lmvr-segment $train_lmvrmodel_src  $test_src -p $P --output-newlines --encoding UTF-8 -o "$test_lmvr_src.temp"
+	cat "$test_lmvr_src.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$test_lmvr_src"
+	rm "$test_lmvr_src.temp"
+        echo "Segmented test set is saved in $test_lmvr_src"
       fi
   fi
 
   if [ $tgt_seg = 'lmvr' ] ; then
       echo "Running LMVR for subword preprocessing"
 
-      if [ -s "$train_morfmodel_trg" ] ; then
-        echo "$train_morfmodel_trg already exist"
+      if [ -s "$train_lmvrmodel_trg" ] ; then
+        echo "$train_lmvrmodel_trg already exist"
       else
         echo "Training Morfessor Baseline for the target corpus"
-        morfessor-train -S "$data_dir/baselinemodel.$trg.txt" $train_trg 2>"$data_dir/log.morf.$trg"
+        lmvressor-train -S "$data_dir/baselinemodel.$trg.txt" $train_trg 2>"$data_dir/log.lmvr.$trg"
 	sed 's/\///g' "$data_dir/baselinemodel.$trg.txt" | sed 's/\\//g' > "$data_dir/baselinemodel.$trg.temp.txt"
 	awk -F' ' '$2!=""' "$data_dir/baselinemodel.$trg.temp.txt" > "$data_dir/baselinemodel.$trg.clean.txt"
 	rm "$data_dir/baselinemodel.$trg.temp.txt" "$data_dir/baselinemodel.$trg.txt"
-	lmvr-train "$data_dir/baselinemodel.$trg.clean.txt" -T $train_trg -s $train_morfmodel_trg -m batch -p $P -d none --min-shift-remainder 1 --length-threshold 5 --min-perplexity-length 1 --max-epochs 5 --lexicon-size $dictionarysize -x $train_morfmodel_trg -o "$train_morf_trg.temp"
+	lmvr-train "$data_dir/baselinemodel.$trg.clean.txt" -T $train_trg -s $train_lmvrmodel_trg -m batch -p $P -d none --min-shift-remainder 1 --length-threshold 5 --min-perplexity-length 1 --max-epochs 5 --lexicon-size $dictionarysize -x $train_lmvrmodel_trg -o "$train_lmvr_trg.temp"
 	
-        echo "Model for segmenting the target corpus is saved in $train_morfmodel_trg"
+        echo "Model for segmenting the target corpus is saved in $train_lmvrmodel_trg"
       fi
     
-        if [ -s "$train_morf_trg" ] ; then
-        echo "$train_morf_trg already exist"
+        if [ -s "$train_lmvr_trg" ] ; then
+        echo "$train_lmvr_trg already exist"
       else
         echo "Applying codes for the target corpus"
-        lmvr-segment $train_morfmodel_trg $train_trg -p $P --output-newlines --encoding UTF-8 -o "$train_morf_trg.temp"
-	cat "$train_morf_trg.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$train_morf_trg"
-	rm "$train_morf_trg.temp"
-        echo "Segmented target train set is saved in $train_morf_trg"
+        lmvr-segment $train_lmvrmodel_trg $train_trg -p $P --output-newlines --encoding UTF-8 -o "$train_lmvr_trg.temp"
+	cat "$train_lmvr_trg.temp" | perl -pe 's/\n/ /g' | perl -pe 's/  /\n/g' > "$train_lmvr_trg"
+	rm "$train_lmvr_trg.temp"
+        echo "Segmented target train set is saved in $train_lmvr_trg"
       fi
   fi
 fi
