@@ -1,0 +1,31 @@
+LMVR
+Installation Guide
+===========================
+
+In order to use LMVR, you first need the Morfessor Baseline. 
+Both are installed using setuptools library for Python.
+
+For more information, see: 
+http://morfessor.readthedocs.io/en/latest/installation.html
+
+You can install them separately or use the methods from the Python project.
+
+Download and unzip lmvr. 
+To build and install the module and scripts to default paths, type
+
+python setup.py install
+
+Running the software
+--------------------
+There are some example scripts in the folder lmvr/examples. 
+You can train a morphology lexicon and segment your corpus based on this lexicon using on the two scripts.
+The scripts are generic for MT experiments, so defines as input train, dev, test sets and includes pre-processing of all corpora.
+
+Documentation
+-------------
+Details of the method are described in the paper
+Ataman, D., Negri, M., Turchi, M., Federico, M. (2017) Linguistically Motivated Vocabulary Reduction for Neural Machine Translation from Turkish to English. The Prague Bulletin of Mathematical Linguistics 108, 331--342, Prague, The Czech Republic, June 2017, European Association for Machine Translation.
+
+Contact
+-------
+For further questions contact ataman@fbk.eu.
