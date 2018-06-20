@@ -17,7 +17,7 @@ setup(name='LMVR',
       url='https://github.com/d-ataman/lmvr',
       description='LMVR',
       keywords='linguistically-motivated vocabulary reduction',
-      packages=['lmvr'],
+      packages=['flatcat'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
